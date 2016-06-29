@@ -9,7 +9,25 @@ end
 class Hangman
 	def initialize
 		puts "Hangman initialized!"
-		new_game
+		start_menu
+	end
+
+	def start_menu
+		puts "1. New Game"
+		puts "2. Load Game"
+		puts "3. Exit"
+		puts
+		input = gets.chomp.to_s
+		if input == "1"
+			new_game
+		elsif input == "2"
+			load_game
+		elsif input == "3"
+			quit_game
+		else
+			clear_screen
+			start_menu
+		end
 	end
 
 	def new_game
@@ -35,34 +53,76 @@ class Hangman
 		end
 	end
 
+	def quit_game
+		abort("Exiting Hangman")
+	end
+
 	def play
-		until @@progress.none? {|space| space == "_"}
-			puts @@word.join("") #debug
+		misses = Array.new
+		game_over = false
+		until game_over == true
+			clear_screen
+			puts "1. Start Menu | 2. Save Game | 3. Quit Game"
+			puts "(DEBUG) Word: #{@@word.join("")}" #debug
 			print @@progress.join(" ") + "\r\n"
+			print "Misses: #{misses.join(" ").upcase} \r\n"
 			puts "Guess a letter or full word"
 			guess = gets.chomp.downcase
 			if guess.length == 1
-				@@word.each_with_index do |letter,index|
-					if guess == letter.downcase
-						@@progress[index] = guess
+				if guess == "1" # Start Menu
+					clear_screen
+					start_menu
+#				elsif guess == "2" # Save Game
+				elsif guess == "3" # Quit Game
+					quit_game
+				elsif (@@word.include? guess.downcase) || (@@word.include? guess.upcase)
+					@@word.each_with_index do |letter,index|
+						if guess == letter.downcase
+							@@progress[index] = guess
+						end
 					end
+				else
+					misses << guess unless misses.include? guess
 				end
 			elsif guess.length > 1
-				puts "Guess: " + guess.inspect #debug
-				puts "Word: " + @@word.join("").inspect #debug
 				if guess == @@word.join("").downcase
 					@@word.each_with_index do |letter,index|
 						@@progress[index] = @@word[index]
 					end
+					puts "Correct! The word was '#{@@word.join("")}'."
 				else
-					puts "Incorrect!"
+					puts "Incorrect! The word was '#{@@word.join("")}'."
 				end
+				play_again
 			else
 				puts "Error: no input"
 			end
+			game_over = true if (@@progress.none? {|space| space == "_"}) || (misses.length == 6)
 		end
 		puts @@word.join(" ")
 		puts "The word was '#{@@word.join("")}'"
+		play_again
+	end
+
+	def clear_screen
+		system "clear" or system "cls"
+	end
+
+	def play_again
+		puts
+		puts "Play again?"
+		puts "1. New Game | 2. Start Menu | 3. Quit"
+		input = gets.chomp
+		if input == "1"
+			new_game
+		elsif input == "2"
+			clear_screen
+			start_menu
+		elsif input == "3"
+			quit_game
+		else
+			start_menu
+		end
 	end
 
 end

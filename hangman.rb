@@ -27,8 +27,10 @@ class Hangman
 			end
 		end
 		@@word = selection.sample.split("")
+		@@word = @@word[0..-2]
+		puts "Word: " + @@word.inspect #debug
 		@@progress = Array.new
-		@@word[0..-2].length.times do
+		@@word[0..-1].length.times do
 			@@progress << "_"
 		end
 	end
@@ -38,29 +40,31 @@ class Hangman
 			puts @@word.join("") #debug
 			print @@progress.join(" ") + "\r\n"
 			puts "Guess a letter or full word"
-			guess = gets.chomp
-			if guess.length > 0
-				if guess.length == 1
-					@@word.each_with_index do |letter,index|
-						if guess == letter
-							@@progress[index] = guess
-						end
-					end
-				else # guess.length > 1
-					if guess == @@word.join
-						@@word.each_with_index do |letter,index|
-							@@progress[index] = @@word[index]
-						end
-					else
-						puts "Incorrect!"
+			guess = gets.chomp.downcase
+			if guess.length == 1
+				@@word.each_with_index do |letter,index|
+					if guess == letter.downcase
+						@@progress[index] = guess
 					end
 				end
+			elsif guess.length > 1
+				puts "Guess: " + guess.inspect #debug
+				puts "Word: " + @@word.join("").inspect #debug
+				if guess == @@word.join("").downcase
+					@@word.each_with_index do |letter,index|
+						@@progress[index] = @@word[index]
+					end
+				else
+					puts "Incorrect!"
+				end
 			else
-				puts "Input error: not a letter or word."
+				puts "Error: no input"
 			end
 		end
+		puts @@word.join(" ")
+		puts "The word was '#{@@word.join("")}'"
 	end
-	
+
 end
 
 game = Hangman.new

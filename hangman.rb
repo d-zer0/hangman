@@ -35,6 +35,17 @@ class Hangman
 		play
 	end
 
+	def save_game
+		Dir.mkdir("saved_games") unless Dir.exists? "saved_games"
+		file_count = Dir.glob(File.join('saved_games', '**', '*')).select { |file| File.file?(file) }.count
+		filename = "saved_games/save_#{file_count+1}.rb"
+		File.open(filename, 'w') do |file|
+			file.puts "word = #{@@word}"
+			file.puts "progress = #{@@progress}"
+			file.puts "misses = #{@@misses}"
+		end
+	end
+
 	#choose a word
 	def choose_word
 		dictionary = File.open ('5desk.txt')
@@ -53,26 +64,23 @@ class Hangman
 		end
 	end
 
-	def quit_game
-		abort("Exiting Hangman")
-	end
-
 	def play
-		misses = Array.new
+		@@misses = Array.new
 		game_over = false
 		until game_over == true
 			clear_screen
 			puts "1. Start Menu | 2. Save Game | 3. Quit Game"
 			puts "(DEBUG) Word: #{@@word.join("")}" #debug
 			print @@progress.join(" ") + "\r\n"
-			print "Misses: #{misses.join(" ").upcase} \r\n"
+			print "Misses: #{@@misses.join(" ").upcase} \r\n"
 			puts "Guess a letter or full word"
 			guess = gets.chomp.downcase
 			if guess.length == 1
 				if guess == "1" # Start Menu
 					clear_screen
 					start_menu
-#				elsif guess == "2" # Save Game
+				elsif guess == "2" # Save Game
+					save_game
 				elsif guess == "3" # Quit Game
 					quit_game
 				elsif (@@word.include? guess.downcase) || (@@word.include? guess.upcase)
@@ -82,7 +90,7 @@ class Hangman
 						end
 					end
 				else
-					misses << guess unless misses.include? guess
+					@@misses << guess unless @@misses.include? guess
 				end
 			elsif guess.length > 1
 				if guess == @@word.join("").downcase
@@ -97,7 +105,7 @@ class Hangman
 			else
 				puts "Error: no input"
 			end
-			game_over = true if (@@progress.none? {|space| space == "_"}) || (misses.length == 6)
+			game_over = true if (@@progress.none? {|space| space == "_"}) || (@@misses.length == 6)
 		end
 		puts @@word.join(" ")
 		puts "The word was '#{@@word.join("")}'"
@@ -106,6 +114,10 @@ class Hangman
 
 	def clear_screen
 		system "clear" or system "cls"
+	end
+
+	def quit_game
+		abort("Exiting Hangman")
 	end
 
 	def play_again

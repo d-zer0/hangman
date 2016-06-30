@@ -1,3 +1,6 @@
+require 'date'
+require 'yaml'
+
 class String
 	def letters?(value)
 		value.split("").each do |char|
@@ -36,13 +39,40 @@ class Hangman
 	end
 
 	def save_game
+		file_count = Dir.glob(File.join('saved_games', '**', '*')).select { |file| File.file?(file) }.count # count files in saved_games
+		if file_count > 3
+			puts "Please select a save to overwrite: "
+			list_saved_games #show files
+			index = gets.chomp
+			game_files = Dir.entries("saved_games").select { |f| f.include?(".sav") }
+			game_file = "saved_games/#{game_files[index.to_i]}"
+			File.delete(game_file) #delete file
+		end
+		yaml = YAML::dump(self)
 		Dir.mkdir("saved_games") unless Dir.exists? "saved_games"
-		file_count = Dir.glob(File.join('saved_games', '**', '*')).select { |file| File.file?(file) }.count
-		filename = "saved_games/save_#{file_count+1}.rb"
-		File.open(filename, 'w') do |file|
-			file.puts "word = #{@@word}"
-			file.puts "progress = #{@@progress}"
-			file.puts "misses = #{@@misses}"
+		filename = "saved_games/#{(file_count.to_i)+1}.sav"
+		save_file = File.new(filename, 'w')
+		save_file.write(yaml)
+	end
+
+	def delete_file
+		File.delete("game_file")
+	end
+
+	def load_game
+		list_saved_games
+		index = gets.chomp
+		game_file = "saved_games/#{game_files[index.to_i]}"
+		yaml = File.open(game_file).read
+		YAML::load(yaml)
+		play
+	end
+
+	def list_saved_games
+		puts
+		game_files = Dir.entries("saved_games").select { |f| f.include?(".sav") }
+		game_files.each_with_index do |file,index|
+			puts "#{index+1}. #{file}"
 		end
 	end
 
@@ -55,24 +85,24 @@ class Hangman
 				selection << word
 			end
 		end
-		@@word = selection.sample.split("")
-		@@word = @@word[0..-2]
-		puts "Word: " + @@word.inspect #debug
-		@@progress = Array.new
-		@@word[0..-1].length.times do
-			@@progress << "_"
+		@word = selection.sample.split("")
+		@word = @word[0..-2]
+		puts "Word: " + @word.inspect #debug
+		@progress = Array.new
+		@word[0..-1].length.times do
+			@progress << "_"
 		end
 	end
 
 	def play
-		@@misses = Array.new
+		@misses = Array.new
 		game_over = false
 		until game_over == true
 			clear_screen
 			puts "1. Start Menu | 2. Save Game | 3. Quit Game"
-			puts "(DEBUG) Word: #{@@word.join("")}" #debug
-			print @@progress.join(" ") + "\r\n"
-			print "Misses: #{@@misses.join(" ").upcase} \r\n"
+			puts "(DEBUG) Word: #{@word.join("")}" #debug
+			print @progress.join(" ") + "\r\n"
+			print "Misses: #{@misses.join(" ").upcase} \r\n"
 			puts "Guess a letter or full word"
 			guess = gets.chomp.downcase
 			if guess.length == 1
@@ -83,32 +113,32 @@ class Hangman
 					save_game
 				elsif guess == "3" # Quit Game
 					quit_game
-				elsif (@@word.include? guess.downcase) || (@@word.include? guess.upcase)
-					@@word.each_with_index do |letter,index|
+				elsif (@word.include? guess.downcase) || (@word.include? guess.upcase)
+					@word.each_with_index do |letter,index|
 						if guess == letter.downcase
-							@@progress[index] = guess
+							@progress[index] = guess
 						end
 					end
 				else
-					@@misses << guess unless @@misses.include? guess
+					@misses << guess unless @misses.include? guess
 				end
 			elsif guess.length > 1
-				if guess == @@word.join("").downcase
-					@@word.each_with_index do |letter,index|
-						@@progress[index] = @@word[index]
+				if guess == @word.join("").downcase
+					@word.each_with_index do |letter,index|
+						@progress[index] = @word[index]
 					end
-					puts "Correct! The word was '#{@@word.join("")}'."
+					puts "Correct! The word was '#{@word.join("")}'."
 				else
-					puts "Incorrect! The word was '#{@@word.join("")}'."
+					puts "Incorrect! The word was '#{@word.join("")}'."
 				end
 				play_again
 			else
 				puts "Error: no input"
 			end
-			game_over = true if (@@progress.none? {|space| space == "_"}) || (@@misses.length == 6)
+			game_over = true if (@progress.none? {|space| space == "_"}) || (@misses.length == 6)
 		end
-		puts @@word.join(" ")
-		puts "The word was '#{@@word.join("")}'"
+		puts @word.join(" ")
+		puts "The word was '#{@word.join("")}'"
 		play_again
 	end
 

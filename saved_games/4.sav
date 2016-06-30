@@ -1,0 +1,24 @@
+--- !ruby/object:Hangman
+word:
+- s
+- k
+- y
+- l
+- i
+- g
+- h
+- t
+- e
+- d
+progress:
+- _
+- _
+- _
+- _
+- _
+- _
+- _
+- _
+- _
+- _
+misses: []

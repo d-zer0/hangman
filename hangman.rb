@@ -1,14 +1,5 @@
 require 'date'
 require 'yaml'
-require 'pp'
-
-class String
-	def letters?(value)
-		value.split("").each do |char|
-  			char =~ /[[:alpha:]]/
-  		end
-	end
-end
 
 class Hangman
 	def initialize

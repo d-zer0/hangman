@@ -1,0 +1,29 @@
+--- !ruby/object:Hangman
+word:
+- u
+- n
+- a
+- l
+- l
+- o
+- y
+- e
+- d
+progress:
+- u
+- n
+- _
+- _
+- _
+- _
+- y
+- _
+- d
+misses:
+- z
+- x
+now: un____y_d1JUL2016_124629AM
+game_files:
+- a__iagi_g1JUL2016_124611AM.sav
+- un____y_d1JUL2016_124629AM.sav
+- __________1JUL2016_124554AM.sav

@@ -1,0 +1,26 @@
+--- !ruby/object:Hangman
+word:
+- a
+- n
+- t
+- i
+- a
+- g
+- i
+- n
+- g
+progress:
+- a
+- _
+- _
+- i
+- a
+- g
+- i
+- _
+- g
+misses:
+- x
+- y
+- z
+now: __________1JUL2016_124554AM

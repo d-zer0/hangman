@@ -1,5 +1,6 @@
 require 'date'
 require 'yaml'
+require 'pp'
 
 class String
 	def letters?(value)
@@ -11,11 +12,13 @@ end
 
 class Hangman
 	def initialize
-		puts "Hangman initialized!"
 		start_menu
 	end
 
 	def start_menu
+		clear_screen
+		puts "Welcome to Hangman by Daniel Varcas (2016)"
+		puts
 		puts "1. New Game"
 		puts "2. Load Game"
 		puts "3. Exit"
@@ -38,40 +41,57 @@ class Hangman
 		play
 	end
 
+	def set_file_name
+		t = Time.now
+		progress = @progress.join("").strip
+		now = "#{t.strftime('%v')}_#{t.strftime('%r')}"
+		now = now.gsub(/-/, "")
+		now = "#{progress}#{now}"
+		now = now.gsub(/\s+/, "")
+		@now = now.gsub(/:/, "")
+	end
+
 	def save_game
-		file_count = Dir.glob(File.join('saved_games', '**', '*')).select { |file| File.file?(file) }.count # count files in saved_games
-		if file_count > 3
+		begin
+			file_count = Dir["saved_games/*"].length
+			puts "Filecount: #{file_count.to_s}"
+		rescue 
+			puts "ERROR: The number of files could not be obtained" 
+		end
+		if file_count >= 3
 			puts "Please select a save to overwrite: "
 			list_saved_games #show files
-			index = gets.chomp
-			game_files = Dir.entries("saved_games").select { |f| f.include?(".sav") }
-			game_file = "saved_games/#{game_files[index.to_i]}"
-			File.delete(game_file) #delete file
+			index = gets.chomp.to_i
+			@game_files = Dir.entries("saved_games").select { |f| f.include?(".sav") }
+			game_file = "saved_games/#{@game_files[index-1]}"
+			#begin
+				File.delete(game_file) #delete file
+			#rescue
+			#	puts "Unable to delete file: #{game_file}"
+			#	return
+			#end
 		end
 		yaml = YAML::dump(self)
 		Dir.mkdir("saved_games") unless Dir.exists? "saved_games"
-		filename = "saved_games/#{(file_count.to_i)+1}.sav"
+		set_file_name
+		filename = "saved_games/#{@now}.sav"
+		puts "Filename: #{filename}"
 		save_file = File.new(filename, 'w')
 		save_file.write(yaml)
-	end
-
-	def delete_file
-		File.delete("game_file")
+		save_file.close
 	end
 
 	def load_game
 		list_saved_games
-		index = gets.chomp
-		game_file = "saved_games/#{game_files[index.to_i]}"
-		yaml = File.open(game_file).read
-		YAML::load(yaml)
-		play
+		index = gets.chomp.to_i
+		file = YAML::load(File.read("saved_games/#{@game_files[index-1]}"))
+		file.play
 	end
 
 	def list_saved_games
 		puts
-		game_files = Dir.entries("saved_games").select { |f| f.include?(".sav") }
-		game_files.each_with_index do |file,index|
+		@game_files = Dir.entries("saved_games").select { |f| f.include?(".sav") }
+		@game_files.each_with_index do |file,index|
 			puts "#{index+1}. #{file}"
 		end
 	end
@@ -94,20 +114,27 @@ class Hangman
 		end
 	end
 
+	def display_game
+		clear_screen
+		puts "|| OPTIONS || 1. Start Menu | 2. Save Game | 3. Quit Game"
+		puts "(DEBUG) Word: #{@word.join("")}" #debug
+		puts
+		print @progress.join(" ") + "\r\n"
+		puts
+		print "Misses: #{@misses.join(" ").upcase} \r\n #{@misses.length}/6"
+		puts
+		puts
+	end
+
 	def play
 		@misses = Array.new
 		game_over = false
 		until game_over == true
-			clear_screen
-			puts "1. Start Menu | 2. Save Game | 3. Quit Game"
-			puts "(DEBUG) Word: #{@word.join("")}" #debug
-			print @progress.join(" ") + "\r\n"
-			print "Misses: #{@misses.join(" ").upcase} \r\n"
-			puts "Guess a letter or full word"
+			display_game
+			print "Guess a letter or full word: "
 			guess = gets.chomp.downcase
 			if guess.length == 1
 				if guess == "1" # Start Menu
-					clear_screen
 					start_menu
 				elsif guess == "2" # Save Game
 					save_game
@@ -137,7 +164,8 @@ class Hangman
 			end
 			game_over = true if (@progress.none? {|space| space == "_"}) || (@misses.length == 6)
 		end
-		puts @word.join(" ")
+		display_game
+		puts "Game Over!"
 		puts "The word was '#{@word.join("")}'"
 		play_again
 	end
@@ -153,7 +181,9 @@ class Hangman
 	def play_again
 		puts
 		puts "Play again?"
-		puts "1. New Game | 2. Start Menu | 3. Quit"
+		puts "- 1. New Game"
+		puts "- 2. Return to Main Menu"
+		puts "- 3. Quit Game"
 		input = gets.chomp
 		if input == "1"
 			new_game

@@ -12,6 +12,8 @@ end
 
 class Hangman
 	def initialize
+		@limit = 9
+		@debug = false
 		start_menu
 	end
 
@@ -117,58 +119,91 @@ class Hangman
 	def display_game
 		clear_screen
 		puts "|| OPTIONS || 1. Start Menu | 2. Save Game | 3. Quit Game"
-		puts "(DEBUG) Word: #{@word.join("")}" #debug
+		puts "(DEBUG) Word: #{@word.join("")}" if @debug == true # uncomment/comment to show/hide answer during play
 		puts
 		print @progress.join(" ") + "\r\n"
 		puts
-		print "Misses: #{@misses.join(" ").upcase} \r\n #{@misses.length}/6"
+		print "Misses: #{@misses.join(" ").upcase} \r\n #{@misses.length}/#{@limit}"
 		puts
 		puts
 	end
 
 	def play
 		@misses = Array.new
-		game_over = false
-		until game_over == true
+		@game_over = false
+		until @game_over == true
 			display_game
 			print "Guess a letter or full word: "
-			guess = gets.chomp.downcase
-			if guess.length == 1
-				if guess == "1" # Start Menu
-					start_menu
-				elsif guess == "2" # Save Game
-					save_game
-				elsif guess == "3" # Quit Game
-					quit_game
-				elsif (@word.include? guess.downcase) || (@word.include? guess.upcase)
-					@word.each_with_index do |letter,index|
-						if guess == letter.downcase
-							@progress[index] = guess
-						end
-					end
-				else
-					@misses << guess unless @misses.include? guess
-				end
-			elsif guess.length > 1
-				if guess == @word.join("").downcase
-					@word.each_with_index do |letter,index|
-						@progress[index] = @word[index]
-					end
-					puts "Correct! The word was '#{@word.join("")}'."
-				else
-					puts "Incorrect! The word was '#{@word.join("")}'."
-				end
-				play_again
-			else
-				puts "Error: no input"
-			end
-			game_over = true if (@progress.none? {|space| space == "_"}) || (@misses.length == 6)
+			take_turn
+			check_if_game_over if @game_over == false
 		end
 		display_game
-		puts "Game Over!"
+		if @victory == true
+			puts "You win!"
+		else
+			puts "You lose!"
+		end
 		puts "The word was '#{@word.join("")}'"
 		play_again
 	end
+
+	def check_if_game_over
+		@game_over = false
+		@victory = false
+		if (@progress.none? {|space| space == "_"})
+			@game_over = true
+			@victory = true
+		elsif @misses.length == @limit
+			@game_over = true
+			@victory = false
+		else
+			@game_over = false
+			@victory = false
+		end
+	end
+
+	def take_turn
+		@guess = gets.chomp.downcase
+		if @guess.length == 1
+				guess_letter
+		elsif @guess.length > 1
+			guess_word
+		else
+			puts "Error: no input"
+		end
+	end
+
+	def guess_letter
+		if @guess == "1" # Start Menu
+			start_menu
+		elsif @guess == "2" # Save Game
+			save_game
+		elsif @guess == "3" # Quit Game
+			quit_game
+		elsif (@word.include? @guess.downcase) || (@word.include? @guess.upcase)
+			@word.each_with_index do |letter,index|
+				if @guess == letter.downcase
+					@progress[index] = @guess
+				end
+			end
+		else
+			@misses << @guess unless @misses.include? @guess
+		end
+	end
+
+	def guess_word
+		if @guess == @word.join("").downcase
+			@word.each_with_index do |letter,index|
+				@progress[index] = @word[index]
+			end
+			@game_over = true
+			@victory = true
+		else
+			@game_over = true
+			@victory = false
+		end
+	end
+
 
 	def clear_screen
 		system "clear" or system "cls"

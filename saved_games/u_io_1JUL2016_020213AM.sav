@@ -1,0 +1,27 @@
+--- !ruby/object:Hangman
+limit: 9
+debug: false
+word:
+- u
+- n
+- i
+- o
+- n
+progress:
+- u
+- _
+- i
+- o
+- _
+misses:
+- a
+- w
+- e
+game_over: false
+guess: '2'
+victory: false
+game_files:
+- a__iagi_g1JUL2016_124611AM.sav
+- _o__eti__1JUL2016_015723AM.sav
+- _o__e_i__1JUL2016_015709AM.sav
+now: _o__eti__1JUL2016_015723AM
